@@ -1,52 +1,40 @@
 """
-Gunicorn configuration for Segmentation API on Render
-Optimized for 150MB model file with limited resources
+Gunicorn config - ULTRA optimized for FREE TIER (512MB RAM)
 """
 
-import multiprocessing
 import os
 
-# Server socket
 bind = f"0.0.0.0:{os.environ.get('PORT', '10000')}"
 
-# Worker processes
-# Use only 1 worker for memory-intensive segmentation model
-workers = 1
+# Worker settings - CRITICAL for free tier
+workers = 1  # Only 1 worker
 worker_class = "sync"
+threads = 1  # No threading
 
-# Timeout settings - CRITICAL for model loading on first request
-# 150MB model takes time to load
-timeout = 300  # 5 minutes for first request
+# Timeout - Allow model loading
+timeout = 300
 graceful_timeout = 300
-keepalive = 5
+keepalive = 2
 
-# Memory management
-# Restart worker periodically to prevent memory leaks
-max_requests = 50  # Lower than classification API due to larger model
-max_requests_jitter = 5
-
-# File upload limits
-limit_request_line = 0  # No limit on request line
-limit_request_field_size = 0  # No limit on request field size
+# Memory management - AGGRESSIVE
+max_requests = 10  # Restart after just 10 requests
+max_requests_jitter = 2
+worker_connections = 50
 
 # Logging
-accesslog = "-"  # stdout
-errorlog = "-"   # stderr  
+accesslog = "-"
+errorlog = "-"
 loglevel = "info"
 
 # Performance
-preload_app = False  # Don't preload - using lazy loading
-worker_tmp_dir = "/dev/shm"  # Use memory for heartbeat files
+preload_app = False
+worker_tmp_dir = "/dev/shm"
 
-# Prevent worker timeout during initial model loading
-worker_connections = 1000
+# Prevent memory leaks
+max_requests = 10  # Very aggressive restart
 
-# Graceful shutdown
-graceful_timeout = 120
-
-print("🔧 Gunicorn Configuration Loaded:")
-print(f"   Bind: {bind}")
+print("🔧 FREE TIER Gunicorn Config:")
 print(f"   Workers: {workers}")
 print(f"   Timeout: {timeout}s")
-print(f"   Max requests per worker: {max_requests}")
-print(f"   Worker temp dir: {worker_tmp_dir}")
+print(f"   Max requests: {max_requests}")
+print("   ⚠️  ULTRA MEMORY OPTIMIZATION MODE")
